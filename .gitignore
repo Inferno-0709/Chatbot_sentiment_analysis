@@ -1,0 +1,27 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# OS junk
+.DS_Store
+
+# Gradio cache
+gradio_cached_examples/
+
+# Database (optional: include if DB shouldn't be pushed)
+chat.db
+*.sqlite
+*.db
+
+# HuggingFace cache
+~/.cache/huggingface/
+
+#google API key
+.env
