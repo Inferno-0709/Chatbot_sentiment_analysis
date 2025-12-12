@@ -7,12 +7,12 @@ from dotenv import load_dotenv
 # Load environment variables from .env (recommended)
 load_dotenv()
 
-# Get API key
+
 API_KEY = os.getenv("GEMINI_API_KEY")
 if not API_KEY:
     raise ValueError("Missing GOOGLE_API_KEY environment variable.")
 
-# Initialize client
+
 client = genai.Client(api_key=API_KEY)
 
 # ----- Prompt Template -----
@@ -51,6 +51,4 @@ def generate_reply(history: str, user_message: str, model: str = "gemini-2.5-fla
         model=model,
         contents=prompt
     )
-
-    # Safely extract text
     return getattr(response, "text", "") or ""

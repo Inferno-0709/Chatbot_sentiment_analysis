@@ -19,7 +19,7 @@ def get_db():
 def chat(payload: ChatRequest, db: Session = Depends(get_db)):
     user_msg_id, bot_msg_id, reply = process_chat(db=db, user_id=payload.user_id, text=payload.text)
 
-    # fetch analysis for the just-created user message (if any)
+    
     analysis = db.query(MessageAnalysis).filter(MessageAnalysis.message_id == user_msg_id).first()
     return ChatResponse(
         user_message_id=user_msg_id,

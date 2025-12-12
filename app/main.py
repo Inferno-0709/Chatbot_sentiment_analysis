@@ -2,7 +2,6 @@
 from fastapi import FastAPI
 from app.database import Base, engine
 
-# import models so SQLAlchemy registers them
 import app.models.user
 import app.models.message
 import app.models.message_analysis

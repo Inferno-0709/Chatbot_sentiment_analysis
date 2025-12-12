@@ -19,7 +19,6 @@ class MessageAnalysisOut(BaseModel):
     sentiment_label: Optional[str]
     sentiment_score: Optional[float]
     emotion_label: Optional[str] = None
-    # allow arbitrary nested JSON (polarity, raw dicts, etc.)
     emotion_scores: Optional[Dict[str, Any]] = None
     created_at: Optional[datetime]
 

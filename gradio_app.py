@@ -52,7 +52,6 @@ def get_user_sentiment(backend_url: str, user_id: int) -> Optional[float]:
     r = requests.get(url, timeout=10)
     r.raise_for_status()
     data = r.json()
-    # API returns {"conversation_sentiment": float, "label": "..."} — get the numeric polarity if present
     return data.get("conversation_sentiment", None)
 
 def fetch_mood_trend(backend_url: str, user_id: int, window: int = 3, last_n: int = 200) -> Dict[str, Any]:
@@ -140,7 +139,6 @@ def refresh_sentiment_button(backend_url: Optional[str] = None, logged_in_state:
     Accepts optional args so it won't crash if it's called without inputs.
     Returns a friendly string to display in the sentiment textbox.
     """
-    # If args are missing, return a safe value (prevents Gradio Input-mismatch errors)
     if not backend_url or not logged_in_state or not isinstance(logged_in_state, dict):
         return "Not logged in"
 
@@ -151,7 +149,6 @@ def refresh_sentiment_button(backend_url: Optional[str] = None, logged_in_state:
     try:
         conv = get_user_sentiment(backend_url, user_id)
     except Exception as e:
-        # return human-friendly message rather than raising
         return f"Refresh error: {e}"
 
     if conv is None:
@@ -201,7 +198,7 @@ def send_message(backend_url: str, logged_in_state, message: str, limit: int = 2
     if not user_id:
         return [], "Not logged in", ""
 
-    # empty message -> just refresh UI
+    
     if not message or message.strip() == "":
         try:
             messages = fetch_user_messages(backend_url, user_id, limit=limit)
@@ -212,11 +209,11 @@ def send_message(backend_url: str, logged_in_state, message: str, limit: int = 2
         except Exception as e:
             return [], f"Refresh failed: {e}", ""
 
-    # attempt to send
+    
     try:
         post_chat(backend_url, user_id, message)
     except Exception as e:
-        # fetch history for UI resilience
+        
         try:
             messages = fetch_user_messages(backend_url, user_id, limit=limit)
             history = build_history_from_messages(messages)
@@ -224,7 +221,7 @@ def send_message(backend_url: str, logged_in_state, message: str, limit: int = 2
             history = []
         return history, f"Send failed: {e}", ""
 
-    # rebuild history after successful send
+    
     try:
         messages = fetch_user_messages(backend_url, user_id, limit=limit)
         history = build_history_from_messages(messages)
@@ -351,7 +348,7 @@ demo_css_js = gr.HTML(
     visible=False
 )
 
-# Focus JS: after send, focus the message textarea
+
 focus_js = gr.HTML(
     """
     <script>

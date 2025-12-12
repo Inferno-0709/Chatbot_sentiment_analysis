@@ -8,7 +8,6 @@ from app.models.user import User
 from app.models.message import Message
 from app.models.message_analysis import MessageAnalysis
 
-# Optional: use your llm_service for a nicer textual summary if available
 try:
     from app.services.llm_service import generate_reply as llm_generate_reply
     _HAS_LLM = True
@@ -42,7 +41,7 @@ def _safe_extract_polarity(analysis: Optional[MessageAnalysis]) -> float:
             return float(p)
         except Exception:
             pass
-    # fallback to sentiment_label
+    
     lbl = (analysis.sentiment_label or "").lower()
     if "positive" in lbl:
         return 0.8
@@ -120,7 +119,7 @@ def conversation_sentiment(user_id: int, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
 
-    # fetch analyses joined with messages to ensure correct user
+    
     rows = db.query(MessageAnalysis).join(Message, Message.id == MessageAnalysis.message_id).filter(
         Message.user_id == user_id
     ).all()
@@ -157,7 +156,7 @@ def user_mood_trend(user_id: int, db: Session = Depends(get_db), window: int = 3
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
 
-    # fetch last messages (newest->oldest)
+    
     msgs = db.query(Message).filter(Message.user_id == user_id).order_by(Message.created_at.desc()).limit(last_n).all()
     if not msgs:
         return {
@@ -174,7 +173,7 @@ def user_mood_trend(user_id: int, db: Session = Depends(get_db), window: int = 3
             "summary": ""
         }
 
-    msgs = list(reversed(msgs))  # now oldest->newest
+    msgs = list(reversed(msgs))  
 
     polarities: List[float] = []
     msg_meta: List[Dict[str, Any]] = []
@@ -215,12 +214,12 @@ def user_mood_trend(user_id: int, db: Session = Depends(get_db), window: int = 3
 
     trend_label = _label_trend(slope, delta)
 
-    # detect shift points
+   
     shift_points: List[Dict[str, Any]] = []
     for i in range(1, len(smoothed)):
         prev = smoothed[i-1]
         cur = smoothed[i]
-        # crossing zero or large jump
+       
         if (prev <= 0 and cur > 0) or (prev >= 0 and cur < 0):
             shift_points.append({
                 "index": i,
@@ -251,14 +250,14 @@ def user_mood_trend(user_id: int, db: Session = Depends(get_db), window: int = 3
         "shift_points": shift_points,
     }
 
-    # textual summary: simple template by default
+    
     simple_summary = f"Conversation mood is {trend_label}. Start mean={start_mean:+.2f}, end mean={end_mean:+.2f}, delta={delta:+.2f}."
     if shift_points:
         simple_summary += f" Detected {len(shift_points)} notable shift(s) (examples: {', '.join(sp['reason'] for sp in shift_points[:3])})."
 
     summary_text = simple_summary
 
-    # If LLM available, ask for a concise human-friendly summary
+    
     if _HAS_LLM:
         try:
             prompt = (
@@ -267,12 +266,12 @@ def user_mood_trend(user_id: int, db: Session = Depends(get_db), window: int = 3
                 f"- slope: {slope if slope is not None else 'N/A'}\n- detected_shifts: {len(shift_points)} (reasons: {[sp['reason'] for sp in shift_points[:5]]})\n\n"
                 "Write a concise human-friendly summary (2-3 sentences) describing how the user's mood changed across the conversation and suggested next steps for the assistant if any."
             )
-            # use llm_generate_reply with empty history + prompt as user_message
+            
             llm_resp = llm_generate_reply(history="", user_message=prompt)
             if isinstance(llm_resp, str) and llm_resp.strip():
                 summary_text = llm_resp.strip()
         except Exception:
-            # ignore LLM errors and keep simple summary
+            
             pass
 
     result["summary"] = summary_text
